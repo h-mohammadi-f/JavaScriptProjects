@@ -5,49 +5,57 @@ const btnSend = document.getElementById('twitter');
 const btnNewQuote = document.getElementById('new-quote');
 const loader = document.getElementById('loader');
 
+let apiQuotes = [];
+
+
 //loader
 
-function loading(){
-    loader.hidden=false;
-    quoteContainer.hidden=true;
+function loading() {
+    loader.hidden = false;
+    quoteContainer.hidden = true;
 }
 
-function complete(){
+function complete() {
     if (!loader.hidden) {
-        loader.hidden=true;
-        quoteContainer.hidden=false;
+        loader.hidden = true;
+        quoteContainer.hidden = false;
     }
 }
 
 //Get quote from API
 async function getQuote() {
-    const proxyURL = 'https://cors-anywhere.herokuapp.com/';
-    const apiURL = 'http://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=json';
-    try {
-        loading();
-        const response = await fetch(proxyURL + apiURL);
-        const data = await response.json();
-        //if the author is null we put unknown instad of blank
-        if (data.quoteAuthor === '') {
-            authorText.innerText = '-Unknown'
-        }
-        else {
-            authorText.innerText = data.quoteAuthor;
-        }
-        //if the length of the code is more than 50 we want to reduce the size of the text
-        if (data.quoteText.length > 50) {
-            quoteText.classList.add('long-quote');
-        }
-        else {
-            quoteText.classList.remove('long-quote');
-        }
-        quoteText.innerText = data.quoteText;
-        complete()
-    } catch (error) {
-        console.log('Whoops, no quote', error);
+    loading();
+    // Pick a random quote from array
+    const quote = apiQuotes[Math.floor(Math.random() * apiQuotes.length)];
+    // Check if Author field is blank and replace it with 'Unknown'
+    if (!quote.author) {
+        authorText.textContent = 'Unknown';
+    } else {
+        authorText.textContent = quote.author;
     }
+    // Check Quote length to determine styling
+    if (quote.text.length > 120) {
+        quoteText.classList.add('long-quote');
+    } else {
+        quoteText.classList.remove('long-quote');
+    }
+    // Set Quote, Hide Loader
+    quoteText.textContent = quote.text;
+    complete();
 }
 
+// Get Quotes From API
+async function getQuotes() {
+    loading();
+    const apiUrl = 'https://type.fit/api/quotes';
+    try {
+        const response = await fetch(apiUrl);
+        apiQuotes = await response.json();
+        getQuote();
+    } catch (error) {
+        // Catch Error Here
+    }
+}
 
 function funBtnSend() {
     const quote = quoteText.innerText;
@@ -63,4 +71,4 @@ btnNewQuote.addEventListener('click', getQuote);
 
 // On Load
 
-getQuote();
+getQuotes();
